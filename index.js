@@ -24,9 +24,9 @@ const port = 4000
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
-    if (token == null) return res.sendStatus(401)
+    if (token == null) return res.sendStatus(403)
     jwt.verify(token, TOKEN_SECRET, (err, user) => {
-        if (err) { return res.sendStatus(403) }
+        if (err) { return res.sendStatus(401) }
         else {
             req.user = user
             next()
@@ -380,6 +380,34 @@ app.post("/update_comment", authenticateToken, (req, res) => {
 
 });
 
+app.post("/delete_comment", authenticateToken, (req, res) => {
+
+
+    if (!req.user.IsAdmin) { res.sendStatus(401) }
+    else {
+
+        let comment_id = req.query.comment_id
+
+        let query = `DELETE FROM Comments WHERE comment_id=${comment_id}`
+
+        console.log(query)
+
+        connection.query(query, (err, rows) => {
+            if (err) {
+                res.json({
+                    "status": "400",
+                    "message": "Error deleting comment"
+                })
+            } else {
+                res.json({
+                    "status": "200",
+                    "message": "Deleting comment successful"
+                })
+            }
+        });
+
+    }
+})
 
 
 
